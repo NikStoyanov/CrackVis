@@ -6,24 +6,33 @@ class VtkPointCloud:
     """
     Makes the point cloud
     """
-    def __init__(self):
+    def __init__(self, filename, scale_factor, abq_feature, point_size):
         """
-        Setup init functions for the vtk point cloud
+        Initialize the point cloud
+
+        Args:
+            filename (string): csv file
+            scale_factor (float):how much to scale the data
+            abq_feature (int): which feature/column to explore in the file
+            point_size: size of points in the cloud
         """
+
+        self.filename = filename
+        self.scale_factor = scale_factor
+        self.abq_feature = abq_feature
+        self.point_size = point_size
 
         self.vtkPolyData = vtk.vtkPolyData()
         self.clear_points()
+
         self.mapper = vtk.vtkPolyDataMapper()
         self.mapper.SetInputData(self.vtkPolyData)
         self.mapper.SetColorModeToDefault()
         self.mapper.SetScalarVisibility(1)
+
         self.vtkActor = vtk.vtkActor()
         self.vtkActor.SetMapper(self.mapper)
-        self.vtkActor.GetProperty().SetPointSize(5)
-
-        self.mesh_actor = vtk.vtkActor()
-        self.scalar_bar_actor = vtk.vtkScalarBarActor()
-        self.mesh_mapper = vtk.vtkDataSetMapper()
+        self.vtkActor.GetProperty().SetPointSize(self.point_size)
 
     def add_point(self, point):
         """
@@ -42,16 +51,12 @@ class VtkPointCloud:
         self.vtkPoints.Modified()
         self.vtkDepth.Modified()
 
-    def set_range(self, min_data, max_data):
+    def set_range(self):
         """
-        Sets the scalar range
-
-        Args:
-            min_data (float): the minimum value in z
-            max_data (float): the maximum value in z
+        Sets the scalar range in z
         """
 
-        self.mapper.SetScalarRange(min_data, max_data)
+        self.mapper.SetScalarRange(self.min_data, self.max_data)
 
     def clear_points(self):
         """
@@ -66,6 +71,31 @@ class VtkPointCloud:
         self.vtkPolyData.SetVerts(self.vtkCells)
         self.vtkPolyData.GetPointData().SetScalars(self.vtkDepth)
         self.vtkPolyData.GetPointData().SetActiveScalars('DepthArray')
+
+    def load_data(self):
+        """
+        Load a csv dataset which consists of exported ABAQUS data
+
+        Args:
+            point_cloud (VtkPointCloud): point cloud object
+        """
+
+        data = np.genfromtxt(self.filename, dtype=float, usecols=[1, 2, self.abq_feature], delimiter=' ')
+
+        # scale the data so it can be displayed properly
+        data[:, 2] = data[:, 2] / self.scale_factor
+
+        # identify extremums to set the scalar range
+        self.min_data = np.min(data[:, 2])
+        self.max_data = np.max(data[:, 2])
+
+        # place the scalar range
+        self.set_range()
+
+        # add the points
+        for point_counter in range(data.shape[0]):
+            point = data[point_counter]
+            self.add_point(point)
 
 class SetVtkWindow():
     """
@@ -91,6 +121,10 @@ class SetVtkWindow():
         renderWindow.SetWindowName("CrackVis:" + filename)
         renderWindowInteractor.Start()
 
+        #self.mesh_actor = vtk.vtkActor()
+        #self.scalar_bar_actor = vtk.vtkScalarBarActor()
+        #self.mesh_mapper = vtk.vtkDataSetMapper()
+
     def draw_color_range(self, mesh_lookup_table):
         """
         Draw the scalar range so that red is max, blue is min
@@ -112,38 +146,12 @@ class SetVtkWindow():
 
         self.mesh_lookup_table.SetHueRange(0.667, 0)
 
-def load_data(filename, point_cloud):
-    """
-    Load a csv dataset which consists of exported ABAQUS data
-
-    Args:
-        point_cloud (VtkPointCloud): point cloud object
-    """
-
-    data = np.genfromtxt(filename, dtype=float, usecols=[1, 2, 7], delimiter=' ')
-
-    # scale the data so it can be displayed properly
-    data[:, 2] = data[:, 2] / (10**8)
-
-    # identify extremums to set the scalar range
-    min_data = np.min(data[:, 2])
-    max_data = np.max(data[:, 2])
-
-    point_cloud.set_range(min_data, max_data)
-
-    # add the points
-    for point_counter in range(data.shape[0]):
-        point = data[point_counter]
-        point_cloud.add_point(point)
-
-    return point_cloud
-
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         filename = input("Enter file name: ")
 
     filename = "/home/nik/Dropbox/PhD/Academic/Modelling/Abaqus/Crack_Vis/output_data/2D_Crack_Vis_m160C_200MPa/2D_Crack_Vis_m160C_200MPa.dat"
-    point_cloud = VtkPointCloud()
-    point_cloud = load_data(filename, point_cloud)
+    point_cloud = VtkPointCloud(filename, 10**8, 7, 5)
+    point_cloud.load_data()
 
     vtk_window = SetVtkWindow(point_cloud)
