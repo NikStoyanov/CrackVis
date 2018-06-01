@@ -3,9 +3,12 @@ import vtk
 import numpy as np
 
 class VtkPointCloud:
+    """
+    Makes the point cloud
+    """
     def __init__(self):
         """
-        Setup init functions for vtk
+        Setup init functions for the vtk point cloud
         """
 
         self.vtkPolyData = vtk.vtkPolyData()
@@ -117,9 +120,6 @@ def load_data(filename, point_cloud):
     min_data = np.min(data[:, 2])
     max_data = np.max(data[:, 2])
 
-    print(min_data)
-    print(max_data)
-
     point_cloud.set_range(min_data, max_data)
 
     # add the points
@@ -129,31 +129,36 @@ def load_data(filename, point_cloud):
 
     return point_cloud
 
+class SetVtkWindow():
+    """
+    Sets the window interactions
+    """
+    def __init__(self, point_cloud):
+        # set renderer
+        renderer = vtk.vtkRenderer()
+        renderer.AddActor(point_cloud.vtkActor)
+        renderer.SetBackground(0., 0., 0.)
+        renderer.ResetCamera()
+
+        # set the window
+        renderWindow = vtk.vtkRenderWindow()
+        renderWindow.AddRenderer(renderer)
+
+        # set interactor
+        renderWindowInteractor = vtk.vtkRenderWindowInteractor()
+        renderWindowInteractor.SetRenderWindow(renderWindow)
+
+        # start interactor
+        renderWindow.Render()
+        renderWindow.SetWindowName("PhD Viewer:" + filename)
+        renderWindowInteractor.Start()
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: xyzviewer.py itemfile")
         filename = input("Enter file name: ")
 
     filename = "/home/nik/Dropbox/PhD/Academic/Modelling/Abaqus/Crack_Vis/output_data/2D_Crack_Vis_m160C_200MPa/2D_Crack_Vis_m160C_200MPa.dat"
-    pointCloud = VtkPointCloud()
-    pointCloud = load_data(filename, pointCloud)
+    point_cloud = VtkPointCloud()
+    point_cloud = load_data(filename, point_cloud)
 
-    # set renderer
-    renderer = vtk.vtkRenderer()
-    renderer.AddActor(pointCloud.vtkActor)
-    #renderer.SetBackground(.2, .3, .4)
-    renderer.SetBackground(0., 0., 0.)
-    renderer.ResetCamera()
-
-    # set the window
-    renderWindow = vtk.vtkRenderWindow()
-    renderWindow.AddRenderer(renderer)
-
-    # set interactor
-    renderWindowInteractor = vtk.vtkRenderWindowInteractor()
-    renderWindowInteractor.SetRenderWindow(renderWindow)
-
-    # start interactor
-    renderWindow.Render()
-    renderWindow.SetWindowName("PhD Viewer:" + filename)
-    renderWindowInteractor.Start()
+    vtk_window = SetVtkWindow(point_cloud)
