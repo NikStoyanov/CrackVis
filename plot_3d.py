@@ -53,6 +53,44 @@ class VtkPointCloud:
 
         self.mapper.SetScalarRange(min_data, max_data)
 
+    def clear_points(self):
+        """
+        Clears the points
+        """
+
+        self.vtkPoints = vtk.vtkPoints()
+        self.vtkCells = vtk.vtkCellArray()
+        self.vtkDepth = vtk.vtkDoubleArray()
+        self.vtkDepth.SetName('DepthArray')
+        self.vtkPolyData.SetPoints(self.vtkPoints)
+        self.vtkPolyData.SetVerts(self.vtkCells)
+        self.vtkPolyData.GetPointData().SetScalars(self.vtkDepth)
+        self.vtkPolyData.GetPointData().SetActiveScalars('DepthArray')
+
+class SetVtkWindow():
+    """
+    Sets the window interactions
+    """
+    def __init__(self, point_cloud):
+        # set renderer
+        renderer = vtk.vtkRenderer()
+        renderer.AddActor(point_cloud.vtkActor)
+        renderer.SetBackground(0., 0., 0.)
+        renderer.ResetCamera()
+
+        # set the window
+        renderWindow = vtk.vtkRenderWindow()
+        renderWindow.AddRenderer(renderer)
+
+        # set interactor
+        renderWindowInteractor = vtk.vtkRenderWindowInteractor()
+        renderWindowInteractor.SetRenderWindow(renderWindow)
+
+        # start interactor
+        renderWindow.Render()
+        renderWindow.SetWindowName("CrackVis:" + filename)
+        renderWindowInteractor.Start()
+
     def draw_color_range(self, mesh_lookup_table):
         """
         Draw the scalar range so that red is max, blue is min
@@ -73,35 +111,6 @@ class VtkPointCloud:
         scalar_bar_widget.SetScalarBarActor(self.scalar_bar_actor)
 
         self.mesh_lookup_table.SetHueRange(0.667, 0)
-    def clear_points(self):
-        """
-        Clears the points
-        """
-
-        self.vtkPoints = vtk.vtkPoints()
-        self.vtkCells = vtk.vtkCellArray()
-        self.vtkDepth = vtk.vtkDoubleArray()
-        self.vtkDepth.SetName('DepthArray')
-        self.vtkPolyData.SetPoints(self.vtkPoints)
-        self.vtkPolyData.SetVerts(self.vtkCells)
-        self.vtkPolyData.GetPointData().SetScalars(self.vtkDepth)
-        self.vtkPolyData.GetPointData().SetActiveScalars('DepthArray')
-
-    def add_axis(self, limits, scale):
-        self.ax3D = vtk.vtkCubeAxesActor()
-        self.ax3D.ZAxisTickVisibilityOn()
-        self.ax3D.SetXTitle('X')
-        self.ax3D.SetXUnits('mm')
-        self.ax3D.SetYTitle('Y')
-        self.ax3D.SetYUnits('mm')
-        self.ax3D.SetZTitle('Z')
-        self.ax3D.SetZUnits('mm')
-        self.ax3D.SetBounds(limits)
-        self.ax3D.SetZAxisRange(limits[-2]*scale[2],limits[-1]*scale[2])
-        self.ax3D.SetXAxisRange(limits[0]*scale[0],limits[1]*scale[0])
-        self.ax3D.SetYAxisRange(limits[2]*scale[1],limits[3]*scale[1])
-        self.ax3D.SetCamera(renderWindow.GetActiveCamera())
-        renderWindow.AddActor(self.ax3D)
 
 def load_data(filename, point_cloud):
     """
@@ -128,30 +137,6 @@ def load_data(filename, point_cloud):
         point_cloud.add_point(point)
 
     return point_cloud
-
-class SetVtkWindow():
-    """
-    Sets the window interactions
-    """
-    def __init__(self, point_cloud):
-        # set renderer
-        renderer = vtk.vtkRenderer()
-        renderer.AddActor(point_cloud.vtkActor)
-        renderer.SetBackground(0., 0., 0.)
-        renderer.ResetCamera()
-
-        # set the window
-        renderWindow = vtk.vtkRenderWindow()
-        renderWindow.AddRenderer(renderer)
-
-        # set interactor
-        renderWindowInteractor = vtk.vtkRenderWindowInteractor()
-        renderWindowInteractor.SetRenderWindow(renderWindow)
-
-        # start interactor
-        renderWindow.Render()
-        renderWindow.SetWindowName("PhD Viewer:" + filename)
-        renderWindowInteractor.Start()
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
