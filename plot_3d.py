@@ -16,6 +16,11 @@ class VtkPointCloud:
         self.mapper.SetScalarVisibility(1)
         self.vtkActor = vtk.vtkActor()
         self.vtkActor.SetMapper(self.mapper)
+        self.vtkActor.GetProperty().SetPointSize(5)
+
+        self.mesh_actor = vtk.vtkActor()
+        self.scalar_bar_actor = vtk.vtkScalarBarActor()
+        self.mesh_mapper = vtk.vtkDataSetMapper()
 
     def add_point(self, point):
         """
@@ -45,6 +50,26 @@ class VtkPointCloud:
 
         self.mapper.SetScalarRange(min_data, max_data)
 
+    def draw_color_range(self, mesh_lookup_table):
+        """
+        Draw the scalar range so that red is max, blue is min
+        """
+
+        self.mesh_lookup_table = vtk.vtkLookupTable()
+        self.draw_color_range(self.mesh_lookup_table)
+        self.mesh_lookup_table.Build()
+
+        self.mesh_mapper.SetScalarRange(min_data, max_data)
+        self.mesh_mapper.SetLookupTable(self.mesh_lookup_table)
+
+        self.scalar_bar_actor.SetOrientationToVertical()
+        self.scalar_bar_actor.SetLookupTable(self.mesh_lookup_table)
+
+        scalar_bar_widget = vtk.vtkScalarBarWidget()
+        scalar_bar_widget.SetInteractor(renderWindowInteractor)
+        scalar_bar_widget.SetScalarBarActor(self.scalar_bar_actor)
+
+        self.mesh_lookup_table.SetHueRange(0.667, 0)
     def clear_points(self):
         """
         Clears the points
@@ -83,7 +108,7 @@ def load_data(filename, point_cloud):
         point_cloud (VtkPointCloud): point cloud object
     """
 
-    data = np.genfromtxt(filename, dtype=float, usecols=[1, 2, 4], delimiter=' ')
+    data = np.genfromtxt(filename, dtype=float, usecols=[1, 2, 7], delimiter=' ')
 
     # scale the data so it can be displayed properly
     data[:, 2] = data[:, 2] / (10**8)
