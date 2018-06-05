@@ -26,19 +26,28 @@ class VtkPointCloud():
             point_size: size of points in the cloud
         """
 
+        # initialize file specific variables
         self.filename = filename
         self.scale_factor = scale_factor
         self.abq_feature = abq_feature
         self.point_size = point_size
 
+        # setup the look up tabe
+        self.lut = vtk.vtkLookupTable()
+        self.build_lut()
+
+        # create the poly data and clear
         self.vtkPolyData = vtk.vtkPolyData()
         self.clear_points()
 
+        # initialize the mapping of the data
         self.mapper = vtk.vtkPolyDataMapper()
         self.mapper.SetInputData(self.vtkPolyData)
         self.mapper.SetColorModeToDefault()
         self.mapper.SetScalarVisibility(1)
+        self.mapper.SetLookupTable(self.lut)
 
+        # create the actor
         self.vtkActor = vtk.vtkActor()
         self.vtkActor.SetMapper(self.mapper)
         self.vtkActor.GetProperty().SetPointSize(self.point_size)
@@ -106,6 +115,17 @@ class VtkPointCloud():
             point = data[point_counter]
             self.add_point(point)
 
+    def build_lut(self):
+        """
+        Creates the lookup table
+
+        Returns:
+            - lut (vtkLookupTable): lookup table with red=max, blue=min
+        """
+
+        self.lut.SetHueRange(0.667, 0)
+        self.lut.Build()
+
 class SetVtkWindow():
     """
     Sets the window interactions
@@ -115,7 +135,7 @@ class SetVtkWindow():
         # set renderer
         renderer = vtk.vtkRenderer()
         renderer.AddActor(point_cloud.vtkActor)
-        renderer.SetBackground(0., 0., 0.)
+        renderer.SetBackground(.1, .2, .4)
         renderer.ResetCamera()
 
         # set the window
@@ -126,13 +146,10 @@ class SetVtkWindow():
         renderWindowInteractor = vtk.vtkRenderWindowInteractor()
         renderWindowInteractor.SetRenderWindow(renderWindow)
 
-        lut = vtk.vtkLookupTable()
-        lut.Build()
-
         # create scalar bar
         scalar_bar = vtk.vtkScalarBarActor()
         scalar_bar.SetOrientationToHorizontal()
-        scalar_bar.SetLookupTable(lut)
+        scalar_bar.SetLookupTable(point_cloud.lut)
         scalar_bar_widget = vtk.vtkScalarBarWidget()
         scalar_bar_widget.SetInteractor(renderWindowInteractor)
         scalar_bar_widget.SetScalarBarActor(scalar_bar)
