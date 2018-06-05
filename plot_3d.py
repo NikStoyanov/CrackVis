@@ -2,7 +2,7 @@ import sys
 import vtk
 import numpy as np
 
-class VtkPointCloud:
+class VtkPointCloud():
     """
     Makes the point cloud
     """
@@ -66,11 +66,11 @@ class VtkPointCloud:
         self.vtkPoints = vtk.vtkPoints()
         self.vtkCells = vtk.vtkCellArray()
         self.vtkDepth = vtk.vtkDoubleArray()
-        self.vtkDepth.SetName('DepthArray')
+        self.vtkDepth.SetName('PointDepth')
         self.vtkPolyData.SetPoints(self.vtkPoints)
         self.vtkPolyData.SetVerts(self.vtkCells)
         self.vtkPolyData.GetPointData().SetScalars(self.vtkDepth)
-        self.vtkPolyData.GetPointData().SetActiveScalars('DepthArray')
+        self.vtkPolyData.GetPointData().SetActiveScalars('PointDepth')
 
     def load_data(self):
         """
@@ -118,40 +118,19 @@ class SetVtkWindow():
 
         # start interactor
         renderWindow.Render()
-        renderWindow.SetWindowName("CrackVis:" + filename)
+        renderWindow.SetWindowName("CrackVis:" + point_cloud.filename)
         renderWindowInteractor.Start()
-
-        #self.mesh_actor = vtk.vtkActor()
-        #self.scalar_bar_actor = vtk.vtkScalarBarActor()
-        #self.mesh_mapper = vtk.vtkDataSetMapper()
 
     def draw_color_range(self, mesh_lookup_table):
         """
         Draw the scalar range so that red is max, blue is min
         """
 
-        self.mesh_lookup_table = vtk.vtkLookupTable()
-        self.draw_color_range(self.mesh_lookup_table)
-        self.mesh_lookup_table.Build()
-
-        self.mesh_mapper.SetScalarRange(min_data, max_data)
-        self.mesh_mapper.SetLookupTable(self.mesh_lookup_table)
-
-        self.scalar_bar_actor.SetOrientationToVertical()
-        self.scalar_bar_actor.SetLookupTable(self.mesh_lookup_table)
-
-        scalar_bar_widget = vtk.vtkScalarBarWidget()
-        scalar_bar_widget.SetInteractor(renderWindowInteractor)
-        scalar_bar_widget.SetScalarBarActor(self.scalar_bar_actor)
-
-        self.mesh_lookup_table.SetHueRange(0.667, 0)
-
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         filename = input("Enter file name: ")
 
-    filename = "/home/nik/Dropbox/PhD/Academic/Modelling/Abaqus/Crack_Vis/output_data/2D_Crack_Vis_m160C_200MPa/2D_Crack_Vis_m160C_200MPa.dat"
-    point_cloud = VtkPointCloud(filename, 10**8, 7, 5)
+    # display the x, y, z
+    point_cloud = VtkPointCloud(filename, 10**8, 7, 10)
     point_cloud.load_data()
-
     vtk_window = SetVtkWindow(point_cloud)
