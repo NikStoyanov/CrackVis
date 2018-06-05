@@ -1,3 +1,12 @@
+"""
+Holds the vtk point cloud and window interactor class
+
+VtkPointCloud:
+    - creates a point cloud to visualize x, y, z
+SetVtkWindow:
+    - makes the interaction for the window
+"""
+
 import sys
 import vtk
 import numpy as np
@@ -101,6 +110,7 @@ class SetVtkWindow():
     """
     Sets the window interactions
     """
+
     def __init__(self, point_cloud):
         # set renderer
         renderer = vtk.vtkRenderer()
