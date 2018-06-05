@@ -126,6 +126,18 @@ class SetVtkWindow():
         renderWindowInteractor = vtk.vtkRenderWindowInteractor()
         renderWindowInteractor.SetRenderWindow(renderWindow)
 
+        lut = vtk.vtkLookupTable()
+        lut.Build()
+
+        # create scalar bar
+        scalar_bar = vtk.vtkScalarBarActor()
+        scalar_bar.SetOrientationToHorizontal()
+        scalar_bar.SetLookupTable(lut)
+        scalar_bar_widget = vtk.vtkScalarBarWidget()
+        scalar_bar_widget.SetInteractor(renderWindowInteractor)
+        scalar_bar_widget.SetScalarBarActor(scalar_bar)
+        scalar_bar_widget.On()
+
         # start interactor
         renderWindow.Render()
         renderWindow.SetWindowName("CrackVis:" + point_cloud.filename)
