@@ -1,26 +1,4 @@
-#+LATEX_CLASS: article
-#+LATEX_CLASS_OPTIONS: [12pt]
-#+OPTIONS: toc:nil ^:{}
-#+EXPORT_EXCLUDE_TAGS: noexport
-
-#+LATEX_HEADER: \usepackage[top=1in, bottom=1.in, left=1in, right=1in]{geometry}
-#+LATEX_HEADER: \usepackage[utf8]{inputenc}
-#+LATEX_HEADER: \usepackage[T1]{fontenc}
-#+LATEX_HEADER: \usepackage{fixltx2e}
-#+LATEX_HEADER: \usepackage{natbib}
-#+LATEX_HEADER: \usepackage{url}
-#+LATEX_HEADER: \usepackage{minted}
-#+STARTUP: showall
-#+STARTUP: inlineimages
-#+STARTUP: showstars
-#+STARTUP: latexpreview
-
-#+TITLE: CrackVis
-
-#+AUTHOR: Nikola Stoyanov
-#+DATE: <2018-06-05 Tue>
-
-#+BEGIN_abstract
+# Background
 For my PhD project I needed a tool to help me decide where to modify
 my simulations (by inserting cohesive elements). This requires the
 ability to see the stress state of structural elements. I am using
@@ -32,7 +10,6 @@ some changes (python 3!) and added bits and pieces I needed. I also
 gave it the super original name CrackVis.
 #+END_abstract
 
-* Background
 CrackVis is a visualisation tool which uses [[https://www.vtk.org/][VTK]] to display a point
 cloud from [[http://www.simulia.com/][ABAQUS]] 2D simulations. The input to the code is a csv file
 which holds data in the following format:
@@ -44,16 +21,16 @@ to be investigated.
 
 The tool will plot the point cloud which represents the nodal values.
 
-* Objective
+# Objective
 The purpose of the script is to provide a visual perspective on the
 stress distribution of structural elements which can facilitate the
 seed of cohesive elements to model crack initiation and propagation.
 
-* Parser
+# Parser
 The parser scripts to extract data from an ABAQUS .odb file can be
 found in [[https://github.com/NikStoyanov/phdfunc][this repository]].
 
-* Usage
+# Usage
 To use the tool you need to do import the CrackVis module, provide the file name
 and set user defined properties.
 
@@ -62,18 +39,20 @@ The properties are:
 - feature: the column of the $Z_n$ which is under investigation
 - point size
 
+# Example
+
 Lets do an example!
 
 A simulation with ABAQUS has been ran on a plate with the following
 boundary conditions:
-- $U_1 = U_2 = 0$ on East
-- $+F_1$ on West
+- U_1 = U_2 = 0 on East
+- +F_1 on West
 - A quadratic temperature function was applied with 0 o the boundary and -160 in the centre
 
 The schematic is below:
 [[./img/Damage_evolution_model_annon1.png]]
 
-#+BEGIN_SRC ipython :exports both :async t :results output :session
+```python
 from crackvis import VtkPointCloud, SetVtkWindow
 
 filename = "./data/2D_Crack_Vis_m160C_200MPa.dat"
@@ -86,14 +65,14 @@ point_size = 10
 point_cloud = VtkPointCloud(filename, scale, feature, point_size)
 point_cloud.load_data()
 vtk_window = SetVtkWindow(point_cloud)
-#+END_SRC
+```
 
 And we get this 3D plot of the principal stress
 [[./img/screen_PStress.png]]
 
 Lets also see the temperature!
 
-#+BEGIN_SRC ipython :exports both :async t :results output :session
+```python
 scale = 10**2
 feature = 3
 point_size = 10
@@ -102,7 +81,7 @@ point_size = 10
 point_cloud = VtkPointCloud(filename, scale, feature, point_size)
 point_cloud.load_data()
 vtk_window = SetVtkWindow(point_cloud)
-#+END_SRC
+```
 
 Which shows the quadratic temperature function applied in the FE calculation
 [[./img/screen_Temp.png]]
