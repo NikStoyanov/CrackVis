@@ -3,7 +3,7 @@ Test case to plot the principal stress
 and the temperature
 """
 
-from plot_3d import VtkPointCloud, SetVtkWindow
+from crackvis import VtkPointCloud, SetVtkWindow
 
 filename = "./data/2D_Crack_Vis_m160C_200MPa.dat"
 
